@@ -8,7 +8,7 @@
     (for [row (range 0 size)] ;returns list going from 0-9
       (vec
         (for [col (range 0 size)]
-          {:row row :col col :visited? false :bottom? true :right? true})))))
+          {:row row :col col :visited? false :bottom? true :right? true :start? (= row col 0) :end? false})))))
 
 (defn possible-neighbors [rooms row col]
   (let [top-room (get-in rooms [(dec row) col])  ;decrease row to get room above current 
@@ -26,9 +26,9 @@
   (let [neighbors (possible-neighbors rooms row col)]
     (if (> (count neighbors) 0)  ;Making sure there are neighbors 
       (rand-nth neighbors)    ;if greater than 0 grab a random neighbor from the set
-      nil)))                  ; otherwise do nothing
+      nil))) ;TRYING TO FIGURE THIS OUT ;(assoc-in rooms [row col :end?] true) ; otherwise do nothing
 
-(defn tear-down-wall [rooms old-row old-col new-row new-col]
+(defn tear-down-wall [rooms old-row old-col new-row new-col]  
   (cond
     (< new-row old-row)  ; Going up
     (assoc-in rooms [new-row new-col :bottom?] false)
@@ -39,13 +39,17 @@
     (> new-col old-col)  ; Going right
     (assoc-in rooms [old-row old-col :right?] false)))
 
-(declare create-maze)
+(declare create-maze)  ;have 
+
+(def hit-end(atom false))  ;creatng a global variable for flagging the first end point
 
 (defn create-maze-loop [rooms old-row old-col new-row new-col]
   (let [new-rooms (tear-down-wall rooms old-row old-col new-row new-col)
         new-rooms (create-maze new-rooms new-row new-col)]
     (if (= rooms new-rooms)
-      rooms
+      (let [end(if (not @hit-end) true false)] ;use the @ sign to grab values from an atom global
+        (reset! hit-end true)        ;reset the hit-end value to true so this doesn't occur more than once.      ;zac guided us thorugh this
+        (assoc-in rooms [old-row old-col :end?] end))      ;    ;zac guided us thorugh this
       (create-maze-loop new-rooms old-row old-col new-row new-col))))
 
 (defn create-maze [rooms row col]
@@ -54,19 +58,22 @@
     (if next-room
       (create-maze-loop rooms row col (:row next-room) (:col next-room))
       rooms)))
-    
-      
 
 
 (defn -main []
   (let [rooms (create-rooms)  ; defining variable rooms))
-        rooms (create-maze rooms 0 0)]
+        rooms (create-maze rooms 0 0)
+        hit-end (atom false)]  
     (doseq [row rooms]         ;using this to print the top line of the grid
       (print " _"))
     (println)                  ;page break for teh ASCII art
     (doseq [row rooms]
       (print "|")
       (doseq [room row]        ;inner loop where we loop over a row        
-        (print (if (:bottom? room) "_" " ")) ; the equivalent of room.hasBottom is true print underscoer otherwise a space
+        (print (cond
+                 (:end? room) "X"
+                 (:start? room) "O"
+                 (:bottom? room) "_"
+                 :else " ")) ; the equivalent of room.hasBottom is true print underscoer otherwise a space
         (print (if (:right? room) "|" " ")))
       (println))))
