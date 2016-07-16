@@ -26,7 +26,7 @@
   (let [neighbors (possible-neighbors rooms row col)]
     (if (> (count neighbors) 0)  ;Making sure there are neighbors 
       (rand-nth neighbors)    ;if greater than 0 grab a random neighbor from the set
-      nil))) ;TRYING TO FIGURE THIS OUT ;(assoc-in rooms [row col :end?] true) ; otherwise do nothing
+      nil))) ; otherwise do nothing
 
 (defn tear-down-wall [rooms old-row old-col new-row new-col]  
   (cond
@@ -39,7 +39,7 @@
     (> new-col old-col)  ; Going right
     (assoc-in rooms [old-row old-col :right?] false)))
 
-(declare create-maze)  ;have 
+(declare create-maze)   
 
 (def hit-end(atom false))  ;creatng a global variable for flagging the first end point
 
@@ -48,8 +48,8 @@
         new-rooms (create-maze new-rooms new-row new-col)]
     (if (= rooms new-rooms)
       (let [end(if (not @hit-end) true false)] ;use the @ sign to grab values from an atom global
-        (reset! hit-end true)        ;reset the hit-end value to true so this doesn't occur more than once.      ;zac guided us thorugh this
-        (assoc-in rooms [old-row old-col :end?] end))      ;    ;zac guided us thorugh this
+        (reset! hit-end true)        ;reset the hit-end value to true so this doesn't occur more than once.   
+        (assoc-in rooms [old-row old-col :end?] end))      
       (create-maze-loop new-rooms old-row old-col new-row new-col))))
 
 (defn create-maze [rooms row col]
